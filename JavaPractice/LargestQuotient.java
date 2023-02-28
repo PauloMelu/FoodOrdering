@@ -7,14 +7,13 @@ public class LargestQuotient{
         System.out.println("Enter integers separated by a space.");
         System.out.print("Ends with 0: ");
         int[] numbers = new int[15];
-        int i=0;
-        do{
+        for(int i=0;i<15;i++){
             numbers[i] = input.nextInt();
-            i++;
-        }while(numbers[i-1]!=0 && i<15);
-
+            if(numbers[i]==0)
+                break;
+        }
         int maxdif=0;
-        for(i=0;i<numbers.length;i++){
+        for(int i=0;i<numbers.length;i++){
             for(int j=0;j<numbers.length;j++){
                 if(numbers[j]!=0)
                     if(numbers[i]/numbers[j]>maxdif)
