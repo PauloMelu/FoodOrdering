@@ -3,7 +3,7 @@ import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
 
-class FinalsProject{
+class FoodOrderingSystem{
     static Scanner in = new Scanner(System.in);
     static double payment;
     static ArrayList<FoodItems> cart = new ArrayList<>(); //orders of user
