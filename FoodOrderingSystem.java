@@ -1,23 +1,35 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
-import java.util.Random;
 import java.util.Scanner;
-
-class FoodOrderingSystem{
+class FinalsProject{
     static Scanner in = new Scanner(System.in);
     static double payment;
     static ArrayList<FoodItems> cart = new ArrayList<>(); //orders of user
-    static String[] foodNames = {"Chicken", "Beef", "Pork", "Lamb"}; //food items from shop owner(not dynamic yet)
-    static double[] costs = {150, 350, 349, 250}; //prices from shop owner(not dynamic yet)
-
     public static void main(String[]args){
 
-        //initialize orders to zero
-        for(int i=0;i<foodNames.length;i++) {
-            cart.add(new FoodItems());
-            cart.get(i).name = foodNames[i];
-            cart.get(i).price = costs[i];
+        //get menu from csv file
+        try {
+            Scanner reader = new Scanner(new File("/Users/Melu/Documents/Code/Finals Project DSA/menu.csv"));
+            reader.nextLine();
+            reader.useDelimiter(",|\r\n");
+            int i=0;
+            while (reader.hasNext()) {
+                if (reader.hasNextDouble())
+                    cart.get(i++).price = reader.nextDouble();
+                else {
+                    cart.add(new FoodItems());
+                    cart.get(i).name = reader.next();
+                }
+            }
+        } catch (FileNotFoundException e){
+            unavailable();
         }
+        if(cart.size()==0)
+            unavailable();
 
         //start of program
         System.out.print("\033[H\033[2J"); //clear console
@@ -31,11 +43,13 @@ class FoodOrderingSystem{
 
         //start of ordertaker
         boolean cont = true;
+        boolean choiceError = false;
         while(cont){
             System.out.print("\033[H\033[2J"); //clear console
             boolean paid = false;
             try {
-                int choice = mainMenu();
+                int choice = mainMenu(choiceError);
+                choiceError = false;
                 if (choice == 1) {
                     in.nextLine(); //catch newline after mainmenu input
                     getOrder(name, false, "", false);
@@ -48,14 +62,12 @@ class FoodOrderingSystem{
                     System.out.print("\033[H\033[2J"); //clear console
                     System.out.println("Thank you for using, have a nice day!");
                 }else {
-                    System.out.println("Invalid Choice, Press Enter to try again");
+                    choiceError = true;
                     in.nextLine(); //catch newline after mainmenu input
-                    in.nextLine(); //prompt to press enter then reset
                 }
             } catch (InputMismatchException e){
-                System.out.println("Invalid Choice, Press Enter to try again");
+                choiceError = true;
                 in.nextLine(); //catch newline after mainmenu input
-                in.nextLine(); //prompt to press enter then reset
             }
             if (paid) {
                 System.out.print("\033[H\033[2J"); //clear console
@@ -63,8 +75,14 @@ class FoodOrderingSystem{
                 cont = false;
             }
         }
-
-
+    }
+    static void unavailable(){
+        System.out.print("\033[H\033[2J"); //clear console
+        System.out.println("Menu is out of order, sorry for the inconvenience.");
+        System.out.println("Press enter");
+        in.nextLine();
+        System.out.print("\033[H\033[2J"); //clear console
+        System.exit(0);
     }
     static void receipt(String name, double payAmount){
         System.out.println("----RECEIPT----\n");
@@ -78,12 +96,12 @@ class FoodOrderingSystem{
         System.out.printf("\nTotal cost: P%.2f\n", cost());
         System.out.printf("Total Payment: P%.2f\n", payAmount);
         System.out.printf("Change: P%.2f\n", payAmount - cost());
-        Random rn = new Random();
-        System.out.printf("Receipt number: #%d\n", rn.nextInt(0,11));
+        LocalDateTime dateTime = LocalDateTime.now();
+        System.out.println("\n" + dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mma")));
         System.out.println("\n---------------");
         System.out.println("\nYour order will be ready in 20 minutes,\nThank you for using the system, have a nice day!");
     }
-    static int mainMenu(){
+    static int mainMenu(boolean error){
         System.out.println("       MAIN MENU");
         System.out.println("--------------------------");
         System.out.println("-                        -");
@@ -91,18 +109,19 @@ class FoodOrderingSystem{
         System.out.println("- (2) Proceed to Payment -");
         System.out.println("- (3) Exit               -");
         System.out.println("-                        -");
-        System.out.println("--------------------------");
-        System.out.print("Enter an option: ");
+        System.out.println("--------------------------\n");
+        if(error)
+            System.out.print("Invalid choice, try again");
+        System.out.print("\nEnter an option: ");
         return in.nextInt();
     }
-
     static boolean paymentMenu(double totalCost, boolean notEnough){
         System.out.print("\033[H\033[2J"); //clear console
-
+        System.out.println("   MAIN MENU >> PAYMENT MENU\n");
         if(totalCost>0) {
             displayOrder(); //display cart
             System.out.printf("Total cost: P%.2f\n", totalCost);
-            System.out.println("Type \"..\" to go back\n");
+            System.out.println("Type any to go back\n");
             paymentError(notEnough);
             System.out.print("Enter amount to pay: P");
             try {
@@ -112,12 +131,12 @@ class FoodOrderingSystem{
                     return paymentMenu(totalCost, true);
                 }
                 System.out.printf("Your change is: P%.2f\n", payment - totalCost);
-                System.out.println("Press enter to proceed..");
+                System.out.println("Press enter to proceed...");
                 in.nextLine(); //prompt to press enter, then go back to mainmenu loop
                 return true;
             }catch(InputMismatchException e){
                 in.nextLine(); //catch newline after invalid input on payment
-                return wishToGoBack(false);
+                return false;
             }
         }else{
             System.out.println("No orders added");
@@ -126,32 +145,14 @@ class FoodOrderingSystem{
             return false;
         }
     }
-
     static void paymentError(boolean notEnough){
         if(notEnough)
             System.out.print("Error: Not Enough Payment");
         System.out.println();
     }
-    static boolean wishToGoBack(boolean invalid){
-        System.out.print("\033[H\033[2J"); //clear console
-        System.out.println("Do you wish to go back to Main Menu?");
-        if(invalid)
-            System.out.print("Invalid input, try again");
-        System.out.println();
-        System.out.print("(yes/no): ");
-        String choice = in.nextLine();
-        if(choice.equalsIgnoreCase("yes")){
-            return false;
-        }
-        else if(choice.equalsIgnoreCase("no"))
-            return paymentMenu(cost(), false);
-        else {
-            return wishToGoBack(true);
-        }
-    }
-
     static void getOrder(String name, boolean foodNameError, String order, boolean quantityError){
         System.out.print("\033[H\033[2J"); //clear console
+        System.out.println("   MAIN MENU >> GET ORDER\n");
         System.out.print("Hi " + name + ", "); displayOrder(); //display cart
         System.out.printf("Total cost: P%.2f\n\n",cost());
         menu(); //display menu
@@ -219,7 +220,6 @@ class FoodOrderingSystem{
         }
         System.out.println(" )");
     }
-
     static void displayError(String foodname, boolean foodNameError, boolean quantityError){
         if(foodNameError) {
             System.out.print("Error: \"" + foodname + "\" is not part of menu");
