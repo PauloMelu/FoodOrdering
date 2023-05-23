@@ -7,13 +7,12 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 class FinalsProject{
     static Scanner in = new Scanner(System.in);
-    static double payment;
+    static double payment; //payment of user
     static ArrayList<FoodItems> cart = new ArrayList<>(); //orders of user
     public static void main(String[]args){
-
         //get menu from csv file
         try {
-            Scanner reader = new Scanner(new File("/Users/Melu/Documents/Code/Finals Project DSA/menu.csv"));
+            Scanner reader = new Scanner(new File("menu.csv"));
             reader.nextLine();
             reader.useDelimiter(",|\r\n");
             int i=0;
@@ -50,20 +49,24 @@ class FinalsProject{
             try {
                 int choice = mainMenu(choiceError);
                 choiceError = false;
-                if (choice == 1) {
-                    in.nextLine(); //catch newline after mainmenu input
-                    getOrder(name, false, "", false);
-                } else if (choice == 2) {
-                    in.nextLine(); //catch newline after mainmenu input
-                    paid = paymentMenu(cost(), false);
-                }
-                else if (choice == 3) {
-                    cont = false;
-                    System.out.print("\033[H\033[2J"); //clear console
-                    System.out.println("Thank you for using, have a nice day!");
-                }else {
-                    choiceError = true;
-                    in.nextLine(); //catch newline after mainmenu input
+                switch(choice){
+                    case 1:
+                        in.nextLine(); //catch newline after mainmenu input
+                        getOrder(name, false, "", false);
+                        break;
+                    case 2:
+                        in.nextLine(); //catch newline after mainmenu input
+                        paid = paymentMenu(cost(), false);
+                        break;
+                    case 3:
+                        cont = false;
+                        System.out.print("\033[H\033[2J"); //clear console
+                        System.out.println("Thank you for using, have a nice day!");
+                        break;
+                    default:
+                        choiceError = true;
+                        in.nextLine();
+                        break;
                 }
             } catch (InputMismatchException e){
                 choiceError = true;
@@ -71,7 +74,7 @@ class FinalsProject{
             }
             if (paid) {
                 System.out.print("\033[H\033[2J"); //clear console
-                receipt(name, payment);
+                receipt(name);
                 cont = false;
             }
         }
@@ -84,7 +87,7 @@ class FinalsProject{
         System.out.print("\033[H\033[2J"); //clear console
         System.exit(0);
     }
-    static void receipt(String name, double payAmount){
+    static void receipt(String name){
         System.out.println("----RECEIPT----\n");
         System.out.println("Customer name: " + name);
         System.out.println("Order list:");
@@ -93,9 +96,10 @@ class FinalsProject{
                 System.out.printf("%d %s - P%.2f\n", items.quantity, items.name, items.price* items.quantity);
             }
         }
-        System.out.printf("\nTotal cost: P%.2f\n", cost());
-        System.out.printf("Total Payment: P%.2f\n", payAmount);
-        System.out.printf("Change: P%.2f\n", payAmount - cost());
+        System.out.printf("\nTotal cost:\tP%.2f\n", cost());
+        System.out.printf("Total Payment:\tP%.2f\n", payment);
+        System.out.println("\t\t-------");
+        System.out.printf("Change:\t\tP%.2f\n", payment - cost());
         LocalDateTime dateTime = LocalDateTime.now();
         System.out.println("\n" + dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mma")));
         System.out.println("\n---------------");
